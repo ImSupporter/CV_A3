@@ -35,6 +35,36 @@ def VLAD(vec_list, vec_nums, centers):
         result.append(agg_vecs.flatten())
     return np.array(result)
 
+# 2000 * 512(channel)
+def max_pooling(cnn_list):
+    result = []
+    for cnn in cnn_list:
+        row_max = np.max(cnn, axis=1)
+
+        # normalization
+        row_norms = np.linalg.norm(row_max)
+        if row_norms == 0:
+            row_norms = 1.0
+        row_max = row_max/row_norms
+
+        result.append(row_max)
+    return np.array(result)
+
+def mean_pooling(cnn_list):
+    result = []
+    for cnn in cnn_list:
+        row_mean = np.max(cnn)
+
+        # normalization
+        row_norms = np.linalg.norm(row_mean)
+        if row_norms == 0:
+            row_norms = 1.0
+        row_mean = row_mean/row_norms
+
+        result.append(row_mean)
+    return np.array(result)
+
+
 
 if __name__ == '__main__':
     # feature(CNN) 불러오기
@@ -58,6 +88,21 @@ if __name__ == '__main__':
                 vec_list.append(vec)
     des_list = np.array(vec_list)
     print(len(vec_list[0]))
+
+    # CNN Feature 불러오기
+    cnn_list = []
+    for path in cnn_files:
+        with open(cnn_dir+path,'rb') as f:
+            data = f.read()
+            arr = np.frombuffer(data, dtype=np.float32)
+            cnn = arr.reshape((-1,512)).T
+            cnn_list.append(cnn)
+    cnn_list = np.array(cnn_list)
+    cnn_max = max_pooling(cnn_list) * 8
+    cnn_mean = mean_pooling(cnn_list) * 8
+
+    print('max pooling:', cnn_max.shape)
+    print('mean pooling:', cnn_mean.shape)
 
     # # inertia 구하기(K=4로 결정)
     # ks = range(1,10)
@@ -93,8 +138,8 @@ if __name__ == '__main__':
 
     # centers 불러오기
     centers = np.load('./sift_centers.npy')
-
-    des_mine = VLAD(vec_list,vec_nums, centers)
+    vlad = VLAD(vec_list,vec_nums, centers)
+    des_mine = np.c_[vlad, cnn_max, cnn_mean]
     des_mine = des_mine.astype(np.float32)
     N, D = des_mine.shape
     print('N,D:',N,D)
