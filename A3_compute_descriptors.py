@@ -53,7 +53,7 @@ def max_pooling(cnn_list):
 def mean_pooling(cnn_list):
     result = []
     for cnn in cnn_list:
-        row_mean = np.max(cnn)
+        row_mean = np.mean(cnn, axis=1)
 
         # normalization
         row_norms = np.linalg.norm(row_mean)
@@ -98,38 +98,13 @@ if __name__ == '__main__':
             cnn = arr.reshape((-1,512)).T
             cnn_list.append(cnn)
     cnn_list = np.array(cnn_list)
-    cnn_max = max_pooling(cnn_list) * 8
-    cnn_mean = mean_pooling(cnn_list) * 8
+    
+    # 각 이미지에 대한 cnn(D=512)의 크기가 1.
+    cnn_max = max_pooling(cnn_list)
+    cnn_mean = mean_pooling(cnn_list)
 
     print('max pooling:', cnn_max.shape)
     print('mean pooling:', cnn_mean.shape)
-
-    # # inertia 구하기(K=4로 결정)
-    # ks = range(1,10)
-    # inertias = []
-
-    # for k in ks:
-    #     model = KMeans(n_clusters=k)
-    #     model.fit(des_list)
-    #     inertias.append(model.inertia_)
-    #     print(k, inertias[-1])
-
-    # # Plot ks vs inertias
-    # plt.figure(figsize=(4, 4))
-
-    # plt.plot(ks, inertias, '-o')
-    # plt.xlabel('number of clusters, k')
-    # plt.ylabel('inertia')
-    # plt.xticks(ks)
-    # plt.show()
-
-
-    # # vector 추출,이미지 당 h*w(196) 크기의 벡터 512개 => 1024000
-    # vectors = []
-    # for des in des_list:
-    #     for v in des:
-    #         vectors.append(v)
-    # print(vectors[0].shape)
     
     # kmeans centers 구하기(20개)
     # kmeans = KMeans(n_clusters=8, random_state=0).fit(vec_list)
@@ -139,6 +114,8 @@ if __name__ == '__main__':
     # centers 불러오기
     centers = np.load('./sift_centers.npy')
     vlad = VLAD(vec_list,vec_nums, centers)
+    cnn_max *= 8 # cnn_max pooling에 대한 가중치
+    cnn_mean *= 1 # cnn_mean pooling에 대한 가중치
     des_mine = np.c_[vlad, cnn_max, cnn_mean]
     des_mine = des_mine.astype(np.float32)
     N, D = des_mine.shape
