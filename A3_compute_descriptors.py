@@ -106,8 +106,8 @@ if __name__ == '__main__':
     print('max pooling:', cnn_max.shape)
     print('mean pooling:', cnn_mean.shape)
     
-    # kmeans centers 구하기(20개)
-    # kmeans = KMeans(n_clusters=8, random_state=0).fit(vec_list)
+    # kmeans centers 구하기(24개)
+    # kmeans = KMeans(n_clusters=24, random_state=0).fit(vec_list)
     # print(kmeans.cluster_centers_.shape)
     # np.save('sift_centers', kmeans.cluster_centers_)
 
